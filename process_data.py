@@ -6,23 +6,26 @@ from multiprocessing import Pool
 from tqdm import tqdm
 
 
-INPUT = os.path.join('data', 'yelp_academic_dataset_review.json')
-OUTPUT = 'yelp_review_data'
+RAW_JSON_DATA = os.path.join('data', 'yelp_data_set', 'yelp_academic_dataset_review.json')
+OUTPUT = os.path.join('data', 'yelp_review_data_full')
 
+SOS = '<sos>'
+EOS = '<eos>'
+PAD = '<pad>'
 MAX_SENTENCE_LEN = 30
 MIN_SENTENCE_LEN = 15
 
 
 def load_reveiw_from_json():
-    with open(INPUT, 'r', encoding='utf-8') as f:
+    with open(RAW_JSON_DATA, 'r', encoding='utf-8') as f:
         data = f.readlines()
-    json_data = [json.loads(entry) for entry in data]
-    final_data = [(int(entry['stars']), entry['text']) for entry in json_data]
+    json_data = [json.loads(line) for line in data]
+    final_data = [(int(review['stars']), review['text']) for review in json_data]
     return final_data
 
 
 def get_sentences(text):
-    cleaned_text = text.replace('\n', ' ').replace('\r', '')
+    cleaned_text = text.replace('\n', ' ').replace('\r', '').lower()
     return sent_tokenize(cleaned_text)
 
 
@@ -31,11 +34,40 @@ def get_sentences_with_rating(entry):
     return [(stars, sentence) for sentence in get_sentences(text)]
 
 
+def pad_tokens(tokens):
+    """
+    >>> pad_tokens([])
+    ['<pad>', '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', \
+'<pad>', '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', \
+'<pad>', '<sos>', '<eos>', '<pad>', '<pad>', '<pad>', '<pad>', \
+'<pad>', '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', \
+'<pad>', '<pad>', '<pad>', '<pad>']
+    >>> pad_tokens(['hello', 'world', '!'])
+    ['<pad>', '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', \
+'<pad>', '<pad>', '<pad>', '<pad>', '<sos>', 'hello', 'world', '!', '<eos>', '<pad>', \
+'<pad>', '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', \
+'<pad>', '<pad>', '<pad>', '<pad>']
+    """
+    tokens.insert(0, SOS)
+    tokens.append(EOS)
+
+    if len(tokens) < MAX_SENTENCE_LEN + 2:
+        diff = MAX_SENTENCE_LEN + 2 - len(tokens)
+        first_half = diff // 2
+        second_half = diff - first_half
+
+        # add padding to the beginning and end
+        tokens = [PAD] * first_half + tokens + [PAD] * second_half
+
+    return tokens
+
+
 def get_tokens_with_ratings(entry):
     stars, sentence = entry
     tokens = word_tokenize(sentence)
     if MIN_SENTENCE_LEN <= len(tokens) <= MAX_SENTENCE_LEN:
-        return stars, tokens
+        padded_tokens = pad_tokens(tokens)
+        return stars, padded_tokens
     return ()
 
 
