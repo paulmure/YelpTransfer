@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 
 RAW_JSON_DATA = os.path.join('data', 'yelp_data_set', 'yelp_academic_dataset_review.json')
-OUTPUT = os.path.join('data', 'yelp_review_data_full')
+OUTPUT = os.path.join('data', 'yelp_review_data_small_full')
 
 SOS = '<sos>'
 EOS = '<eos>'
@@ -51,13 +51,12 @@ def pad_tokens(tokens):
     tokens.insert(0, SOS)
     tokens.append(EOS)
 
-    if len(tokens) < MAX_SENTENCE_LEN + 2:
-        diff = MAX_SENTENCE_LEN + 2 - len(tokens)
-        first_half = diff // 2
-        second_half = diff - first_half
+    diff = MAX_SENTENCE_LEN + 2 - len(tokens)
+    first_half = diff // 2
+    second_half = diff - first_half
 
-        # add padding to the beginning and end
-        tokens = [PAD] * first_half + tokens + [PAD] * second_half
+    # add padding to the beginning and end
+    tokens = [PAD] * first_half + tokens + [PAD] * second_half
 
     return tokens
 
