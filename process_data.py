@@ -7,11 +7,12 @@ from tqdm import tqdm
 
 
 RAW_JSON_DATA = os.path.join('data', 'yelp_data_set', 'yelp_academic_dataset_review.json')
-OUTPUT = os.path.join('data', 'yelp_review_data_small_full')
+OUTPUT = os.path.join('data', 'yelp_review_data')
 
-SOS = '<sos>'
-EOS = '<eos>'
-PAD = '<pad>'
+SOS_TOKEN = '<sos>'
+EOS_TOKEN = '<eos>'
+PAD = True
+PAD_TOKEN = '<pad>'
 MAX_SENTENCE_LEN = 30
 MIN_SENTENCE_LEN = 15
 
@@ -48,15 +49,16 @@ def pad_tokens(tokens):
 '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', '<pad>', \
 '<pad>', '<pad>', '<pad>', '<pad>']
     """
-    tokens.insert(0, SOS)
-    tokens.append(EOS)
+    tokens.insert(0, SOS_TOKEN)
+    tokens.append(EOS_TOKEN)
 
-    diff = MAX_SENTENCE_LEN + 2 - len(tokens)
-    first_half = diff // 2
-    second_half = diff - first_half
+    if PAD:
+        diff = MAX_SENTENCE_LEN + 2 - len(tokens)
+        first_half = diff // 2
+        second_half = diff - first_half
 
-    # add padding to the beginning and end
-    tokens = [PAD] * first_half + tokens + [PAD] * second_half
+        # add padding to the beginning and end
+        tokens = [PAD_TOKEN] * first_half + tokens + [PAD_TOKEN] * second_half
 
     return tokens
 
