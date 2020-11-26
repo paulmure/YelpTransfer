@@ -15,4 +15,4 @@ class YelpDataset(Dataset):
     def __getitem__(self, idx):
         stars, tokens = self.data[idx]
         word_vecs = list(map(lambda word: self.nlp(word).vector, tokens))
-        return stars, word_vecs
+        return stars, tensor(word_vecs)
