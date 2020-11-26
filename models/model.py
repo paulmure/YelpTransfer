@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 import random
 
-from encoder import Encoder
-from decoder import Decoder
-from quantizer import VQEmbedding
+from .encoder import Encoder
+from .decoder import Decoder
+from .quantizer import VQEmbedding
 
 
 class Model(nn.Module):
