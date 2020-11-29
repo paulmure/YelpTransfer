@@ -16,12 +16,12 @@ hyper_params = {
     'word_emb_dim': 300,
     'encoder_hidden_dim': 200,
     'encoder_num_layers': 3,
-    'quantizer_num_embeddings': 256,
+    'quantizer_num_embeddings': 10,
     'decoder_hidden_dim': 220,
     'seq_len': 32,
     'teacher_force': 0.3,
     'commitment_cost': 0.25,
-    'epochs': 1000,
+    'epochs': 10,
     'batch_size': 16,
     'learning_rate': 0.001,
     'device': 'cuda',
@@ -57,7 +57,7 @@ class Trainer():
         self.model.to(device)
 
         dataset = YelpDataset(data_path)
-        # dataset = torch.utils.data.Subset(dataset, [0])
+        dataset = torch.utils.data.Subset(dataset, range(100))
         self.dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size)
 
         self.logs = {f'epoch_{i}': {'loss_recons': [], 'loss_vq': [], 'loss_commit': [], 'total_loss': []} \
@@ -97,13 +97,14 @@ class Trainer():
             self.time_epoch_end()
             self.log_epoch(epoch)
 
+        torch.save(self.model.state_dict(), 'test_model')
         self.save_training_log()
 
     def time_epoch_start(self):
         self.timer = time.time()
 
     def time_epoch_end(self):
-        runtime = self.timer - time.time()
+        runtime = time.time() - self.timer
         print(f'Runtime: {(floor(runtime) // 60):02}:{(floor(runtime) % 60):02}')
 
     def log_training_step(self, loss_recons, loss_vq, loss_commit, total_loss, epoch):
